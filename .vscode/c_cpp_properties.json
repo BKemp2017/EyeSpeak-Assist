@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include",
+        "/usr/include/opencv4",
+        "/usr/include/gtkmm-2.4",
+        "/usr/include/gtk-2.0",
+        "/usr/include/gdkmm-2.4/gdkmm",
+        "/usr/include/gtkmm-2.4/gtkmm",
+        "/usr/lib/x86_64-linux-gnu/gtkmm-2.4/include",
+        "/usr/include/glibmm-2.4/glibmm",
+        "/usr/lib/x86_64-linux-gnu/glibmm-2.4/include",
+        "/usr/include/atkmm-1.6",
+        "/usr/lib/x86_64-linux-gnu/atkmm-1.6/include",
+        "/usr/include/giomm-2.4",
+        "/usr/lib/x86_64-linux-gnu/giomm-2.4/include",
+        "/usr/include/pangomm-1.4",
+        "/usr/lib/x86_64-linux-gnu/pangomm-1.4/include",
+        "/usr/include/cairomm-1.0",
+        "/usr/lib/x86_64-linux-gnu/cairomm-1.0/include",
+        "/usr/include/boost",
+        "/usr/local/include/vxl",
+        "/usr/local/include/vxl/core",
+        "/usr/local/include",
+        "/usr/lib/x86_64-linux-gnu/sigc++-2.0/include"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/g++",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-x64"
+    }
+  ],
+  "version": 4
+}
