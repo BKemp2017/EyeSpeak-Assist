@@ -9,6 +9,10 @@ def main():
     speech = SpeechEngine()
     ui = EyeSpeakInterface()
 
+    # Setup fullscreen window once before the loop
+    cv2.namedWindow("EyeSpeak Interface", cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty("EyeSpeak Interface", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
     try:
         last_update = time.time()
         interval = 0.86
@@ -42,7 +46,7 @@ def main():
                 cv2.putText(frame, "[INFO] Blink Detected", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 100, 255), 2)
 
             cv2.imshow("EyeSpeak Interface", frame)
-            if cv2.waitKey(1) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
                 break
     finally:
         tracker.release()
