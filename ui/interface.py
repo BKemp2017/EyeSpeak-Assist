@@ -43,7 +43,7 @@ class EyeSpeakInterface:
             return []
 
     def load_dictionary(self):
-        path = "C:\\Users\\blake\\american-english"
+        path = "/usr/share/dict/american-english"
         if os.path.exists(path):
             with open(path) as f:
                 return set(word.strip().upper() for word in f if word.strip().isalpha())
