@@ -5,9 +5,9 @@ import mediapipe as mp
 from collections import deque
 
 class EyeTracker:
-    def __init__(self, camera_index=0):
+    def __init__(self, camera_index=0, cap=None):
         print("[INFO] Attempting to initialize webcam...")
-        self.cap = cv2.VideoCapture(camera_index)
+        self.cap = cap if cap is not None else cv2.VideoCapture(camera_index)
         if not self.cap.isOpened():
             raise RuntimeError("[INFO] Could not open webcam.")
         print("[INFO] Webcam initialized.")

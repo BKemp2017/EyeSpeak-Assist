@@ -50,12 +50,20 @@ class EyeSpeakInterface:
         return {"HELLO", "YES", "NO", "PLEASE", "THANK", "YOU", "HELP", "STOP", "GO", "LOVE"}
 
     def update_valid_keys(self):
-        partial = self.text_buffer.strip().split(" ")[-1].upper()
+        # Look at the raw text buffer, don't strip or rstrip
+        if self.text_buffer.endswith(" "):
+            # User just typed space — treat it as a word boundary
+            self.valid_keys = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ./-")
+            return
+
+        # Otherwise calculate next valid letters based on last word
+        partial = self.text_buffer.split(" ")[-1].upper()
         next_keys = set()
         for word in self.words:
             if word.startswith(partial) and len(word) > len(partial):
                 next_keys.add(word[len(partial)])
-        self.valid_keys = next_keys.union({".", "/", "-"}) if partial else set("ABCDEFGHIJKLMNOPQRSTUVWXYZ./-")
+
+        self.valid_keys = next_keys.union({".", "/", "-"}) if next_keys else set("ABCDEFGHIJKLMNOPQRSTUVWXYZ./-")
 
     def generate_key_order(self):
         order = []
@@ -135,7 +143,7 @@ class EyeSpeakInterface:
         visible_items = self.phrases[start_index:end_index]
 
         has_next_page = len(self.phrases) > end_index
-        total_options = len(visible_items) + 2  # includes BACK and NEXT
+        # total_options = len(visible_items) + 2  # includes BACK and NEXT
 
         highlight_index = self.phrase_index
 
