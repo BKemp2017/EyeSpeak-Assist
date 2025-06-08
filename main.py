@@ -144,7 +144,8 @@ def main():
                 last_update = current_time
 
             if blink:
-                select_sound.play()
+                if select_sound:
+                    select_sound.play()
                 result = ui.blink_triggered()
                 if result == "ENTER":
                     sentence = ui.text_buffer.strip()
