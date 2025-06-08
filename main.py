@@ -114,7 +114,12 @@ def main():
     speech = SpeechEngine()
     ui = EyeSpeakInterface()
     pygame.init()
-    select_sound = pygame.mixer.Sound("assets/sounds/boop-3.wav")
+    try: 
+        pygame.mixer.init()
+        select_sound = pygame.mixer.Sound("assets/sounds/boop-3.wav")
+    except pygame.error:
+        print("[ERROR] Audio not available - continuing without sound")
+        select_sound = None
 
     # # Setup fullscreen window once before the loop
     cv2.namedWindow("EyeSpeak Interface", cv2.WINDOW_NORMAL)
