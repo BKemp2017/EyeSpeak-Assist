@@ -1,4 +1,4 @@
-# 🧠 EyeSpeak Assist — Blink-Driven Speech for ALS Users
+# 🧠 EyeSpeak — Blink-Driven Speech for ALS Users
 
 EyeSpeak Assist is an accessible, Raspberry Pi–ready, blink-based speech interface designed for individuals with ALS and other motor impairments. It uses a webcam to detect blinks and enables the user to select letters and phrases from a custom onscreen keyboard — hands-free, voice-powered communication.
 
