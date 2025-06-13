@@ -9,7 +9,7 @@ class EyeSpeakInterface:
             list("ASDFGHJKL"),
             list("ZXCVBNM./-"),
         ]
-        self.special_buttons = ["PHRASES"]
+        self.special_buttons = ["PHRASES", "QUIT"]
         self.cell_width = 60
         self.cell_height = 60
         self.text_buffer = ""
@@ -29,6 +29,8 @@ class EyeSpeakInterface:
         self.words = self.load_dictionary()
         self.valid_keys = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ./-")
         self.phrases = self.load_phrases()
+        self.quit_confirm = False
+        self.quit_index = 0
         self.key_order = self.generate_key_order()
 
     def load_phrases(self):
@@ -39,14 +41,18 @@ class EyeSpeakInterface:
                 data = yaml.safe_load(f)
                 return [str(p) for p in data.get("phrases", [])]
         except Exception as e:
-            print(f"⚠️ Could not load phrases.yml: {e}")
+            print(f" [ERROR] Could not load phrases.yml: {e}")
             return []
 
     def load_dictionary(self):
-        path = "/usr/share/dict/american-english"
-        if os.path.exists(path):
-            with open(path) as f:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        dict_path = os.path.join(current_dir, "..", "assets", "dict", "american-english")
+
+        if os.path.exists(dict_path):
+            with open(dict_path, "r") as f:
                 return set(word.strip().upper() for word in f if word.strip().isalpha())
+
+        print("⚠️ Dictionary not found. Falling back to defaults.")
         return {"HELLO", "YES", "NO", "PLEASE", "THANK", "YOU", "HELP", "STOP", "GO", "LOVE"}
 
     def update_valid_keys(self):
@@ -71,9 +77,23 @@ class EyeSpeakInterface:
             for key in row:
                 order.append(("KEY", key))
             order.append(("SPECIAL", "PHRASES"))
+        order.append(("SPECIAL", "QUIT"))
         return order
 
-    def draw_ui(self, frame):
+    def draw_ui(self, frame):       
+        if self.quit_confirm:
+            overlay = frame.copy()
+            prompt =  "Are you sure you want to quit? YES / NO"
+            cv2.putText(overlay, prompt, (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            for idx, option in enumerate (["YES", "NO"]):
+                x = 50 + idx * 160
+                y = 150
+                color = (0, 255, 0) if self.quit_index == idx else (255, 255, 255)
+                cv2.rectangle(overlay, (x, y), (x + 120, y +60), color, 2)
+                cv2.putText(overlay, option, (x + 20, y +40), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            return overlay
+
         h, w, _ = frame.shape
         offset_x = (w - self.cell_width * 10) // 2
         offset_y = h - self.cell_height * 5 - 30
@@ -102,10 +122,18 @@ class EyeSpeakInterface:
                 y2 = y1 + self.cell_height
                 highlighted = self.key_order[self.key_index] == ("KEY", char)
                 enabled = char.upper() in self.valid_keys
-                color = (0, 255, 0) if highlighted and enabled else                         (100, 100, 100) if not enabled else (255, 255, 255)
+                color = (0, 255, 0) if highlighted and enabled else (100, 100, 100) if not enabled else (255, 255, 255)
                 thickness = 2 if enabled else 1
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3 if highlighted and enabled else thickness)
                 cv2.putText(frame, char, (x1 + 15, y1 + 45), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+        
+        # Draw QUIT button
+        x = offset_x + 8 * self.cell_width
+        y = offset_y - self.cell_height
+        highlighted = self.key_order[self.key_index] == ("SPECIAL", "QUIT")
+        color = (0, 255, 0) if highlighted else (255, 255, 255)
+        cv2.rectangle(frame, (x, y), (x + 2 * self.cell_width, y + self.cell_height), color, 2)
+        cv2.putText(frame, "QUIT", (x + 5, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
         cv2.putText(frame, self.text_buffer, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 2)
         return frame
@@ -192,6 +220,10 @@ class EyeSpeakInterface:
         return frame
 
     def advance_key(self):
+        if self.quit_confirm:
+            self.quit_index = (self.quit_index + 1) % 2
+            return
+        
         if self.selection_mode:
             return
 
@@ -218,6 +250,14 @@ class EyeSpeakInterface:
                 tries += 1
 
     def blink_triggered(self):
+        if self.quit_confirm:
+            if self.quit_index == 0:
+                exit(0)
+            else:
+                self.quit_confirm = False
+                self.quit_index = 0
+            return None
+        
         if self.selection_mode:
             if self.confirm_options[self.confirm_index] == "YES":
                 return self.commit_char()
@@ -248,14 +288,19 @@ class EyeSpeakInterface:
 
         # Regular keyboard
         kind, value = self.key_order[self.key_index]
-        if kind == "SPECIAL" and value == "PHRASES":
-            self.in_phrase_panel = True
-            self.phrase_index = -1
-            self.phrase_scroll_offset = 0
-        elif kind == "KEY":
-            if value in self.valid_keys:
-                self.pending_char = value
-                self.selection_mode = True
+        if kind == "SPECIAL":
+            if value == "PHRASES":
+                self.in_phrase_panel = True
+                self.phrase_index = -1
+                self.phrase_scroll_offset = 0
+            elif value == "QUIT":
+                self.quit_confirm = True
+                self.quit_index = 0
+            return None
+
+        if kind == "KEY" and value in self.valid_keys:
+            self.pending_char = value
+            self.selection_mode = True
         return None
 
     def toggle_confirmation(self):
