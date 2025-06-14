@@ -142,7 +142,7 @@ def main():
             if frame is None:
                 continue
 
-            frame, _, blink, _ = tracker.get_frame(frame)
+            frame, _, blink, _ = tracker.get_frame()
             
             current_time = time.time()
             if current_time - last_update > interval:
