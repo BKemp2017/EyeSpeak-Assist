@@ -129,9 +129,8 @@ def main():
         print("[ERROR] Audio not available - continuing without sound")
         select_sound = None
 
-    # # Setup fullscreen window once before the loop
-    screen_w, screen_h = pyautogui.size()
-    screen = cv2.resize(screen, (screen_w, screen_h))
+    screen_w, screen_h = pyautogui.size()    
+
     cv2.namedWindow("EyeSpeak Interface", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty("EyeSpeak Interface", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
@@ -170,7 +169,8 @@ def main():
                     speech.say(result)
 
             frame = ui.draw_ui(frame)
-
+            frame = cv2.resize(frame, (screen_w, screen_h))
+        
             cv2.imshow("EyeSpeak Interface", frame)
             if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
                 break
