@@ -2,15 +2,11 @@
 import time
 import cv2
 import mediapipe as mp
-from collections import deque
 
 class EyeTracker:
-    def __init__(self, camera_index=0, cap=None):
-        print("[INFO] Attempting to initialize webcam...")
-        self.cap = cap if cap is not None else cv2.VideoCapture(camera_index)
-        if not self.cap.isOpened():
-            raise RuntimeError("[INFO] Could not open webcam.")
-        print("[INFO] Webcam initialized.")
+    def __init__(self, cap):
+        self.cap = cap  # Camera class instance
+        print("[INFO] EyeTracker initialized with custom camera.")
 
         self.face_mesh = mp.solutions.face_mesh.FaceMesh(
             max_num_faces=1,
@@ -28,8 +24,8 @@ class EyeTracker:
         self.blink_cooldown = 0.5  # seconds
 
     def get_frame(self):
-        success, frame = self.cap.read()
-        if not success:
+        frame = self.cap.get_frame()
+        if frame is None:
             return None, None, False, None
 
         frame = cv2.flip(frame, 1)

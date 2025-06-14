@@ -6,6 +6,7 @@ import os
 import numpy as np
 from modules.eye_tracker import EyeTracker
 from modules.speech_engine import SpeechEngine
+from modules.camera import Camera  
 from ui.interface import EyeSpeakInterface
 
 import pyautogui
@@ -46,6 +47,8 @@ def show_splash_screen():
     cv2.destroyWindow(window_name)
 
 def wait_for_camera():
+    from modules.camera import Camera
+
     window_name = "Initializing EyeSpeak"
     width, height = 800, 200
     bar_length = 600
@@ -53,11 +56,11 @@ def wait_for_camera():
     max_wait_time = 5  # seconds
     start_time = time.time()
     camera_ready = False
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW if os.name == 'nt' else 0)  # DSHOW helps avoid freezing on Windows
+    camera = None
 
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, width, height)
-    cv2.moveWindow(window_name, 300, 300)  # Adjust as needed to center on screen
+    cv2.moveWindow(window_name, 300, 300)
 
     progress = 0
 
@@ -72,20 +75,24 @@ def wait_for_camera():
 
         cv2.imshow(window_name, screen)
         key = cv2.waitKey(50)
-        if key == 27:  # ESC to exit
+        if key == 27:
             print("[INFO] User cancelled camera init.")
-            cap.release()
             cv2.destroyWindow(window_name)
-            return False
+            return None
 
-        if not camera_ready and cap.isOpened():
-            ret, test_frame = cap.read()
-            if ret and test_frame is not None:
-                camera_ready = True
-                break
+        if not camera_ready:
+            try:
+                camera = Camera()
+                frame = camera.get_frame()
+                if frame is not None:
+                    camera_ready = True
+                    break
+            except Exception as e:
+                camera = None
+                # Keep retrying until max time
+                pass
 
     if not camera_ready:
-        cap.release()
         print("[ERROR] Camera initialization failed.")
         cv2.destroyWindow(window_name)
         return None
@@ -100,17 +107,18 @@ def wait_for_camera():
             print("[INFO] User cancelled during final animation.")
             cv2.destroyWindow(window_name)
             return None
+
     cv2.waitKey(500)
     cv2.destroyWindow(window_name)
-    return cap
+    return camera
 
 def main():
     show_splash_screen()
-    cap = wait_for_camera()
-    if cap is None:
+    camera = wait_for_camera()
+    if camera is None:
         return
 
-    tracker = EyeTracker(cap=cap)
+    tracker = EyeTracker(camera=camera)
     speech = SpeechEngine()
     ui = EyeSpeakInterface()
     pygame.init()
@@ -130,11 +138,13 @@ def main():
         interval = 0.86
 
         while True:
-            frame, _, blink, _ = tracker.get_frame()
+            frame = camera.get_frame()
             if frame is None:
                 continue
-            current_time = time.time()
 
+            frame, _, blink, _ = tracker.get_frame(frame)
+            
+            current_time = time.time()
             if current_time - last_update > interval:
                 if not ui.selection_mode:
                     if not ui.just_spoke_phrase:
@@ -165,6 +175,7 @@ def main():
             if cv2.getWindowProperty("EyeSpeak Interface", cv2.WND_PROP_VISIBLE) < 1:
                 break
     finally:
+        camera.stop()
         tracker.release()
         cv2.destroyAllWindows()
 
