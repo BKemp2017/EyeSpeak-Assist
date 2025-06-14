@@ -4,8 +4,8 @@ import cv2
 import mediapipe as mp
 
 class EyeTracker:
-    def __init__(self, cap):
-        self.cap = cap  # Camera class instance
+    def __init__(self, camera):
+        self.cap = camera  # Camera class instance
         print("[INFO] EyeTracker initialized with custom camera.")
 
         self.face_mesh = mp.solutions.face_mesh.FaceMesh(
