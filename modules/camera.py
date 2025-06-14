@@ -16,6 +16,5 @@ class Camera:
         cv2.destroyAllWindows()
 
     def release(self):
-        if self.cap:
-            self.cap.release()
+        self.stop()
 
