@@ -52,7 +52,7 @@ class EyeTracker:
             height_r = abs(bottom_lid_r[1] - top_lid_r[1])
 
             current_time = time.time()
-            if (height_l < 5 or height_r < 5) and (current_time - self.last_blink_time > self.blink_cooldown):
+            if (height_l < 8 or height_r < 8) and (current_time - self.last_blink_time > self.blink_cooldown):
                 blink = True
                 self.last_blink_time = current_time
 

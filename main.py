@@ -130,6 +130,8 @@ def main():
         select_sound = None
 
     # # Setup fullscreen window once before the loop
+    screen_w, screen_h = pyautogui.size()
+    screen = cv2.resize(screen, (screen_w, screen_h))
     cv2.namedWindow("EyeSpeak Interface", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty("EyeSpeak Interface", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
