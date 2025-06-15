@@ -21,7 +21,7 @@ class EyeTracker:
         self.right_lid_bottom = 374
 
         self.last_blink_time = 0
-        self.blink_cooldown = 0.2  # seconds
+        self.blink_cooldown = 0.5  # seconds
 
     def get_frame(self):
         frame = self.cap.get_frame()
@@ -52,7 +52,7 @@ class EyeTracker:
             height_r = abs(bottom_lid_r[1] - top_lid_r[1])
 
             current_time = time.time()
-            if (height_l < 10 or height_r < 10) and (current_time - self.last_blink_time > self.blink_cooldown):
+            if (height_l < 6 or height_r < 6) and (current_time - self.last_blink_time > self.blink_cooldown):
                 blink = True
                 self.last_blink_time = current_time
 

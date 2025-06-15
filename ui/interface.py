@@ -105,7 +105,6 @@ class EyeSpeakInterface:
 
         if self.in_phrase_panel:
             return self.draw_phrase_panel(frame, offset_x, offset_y)
-
         phrase_button_coords = (offset_x + 4 * self.cell_width, offset_y)
         phrase_color = (0, 255, 0) if self.is_phrase_selected() else (255, 255, 255)
         cv2.rectangle(frame, phrase_button_coords, 
@@ -147,6 +146,14 @@ class EyeSpeakInterface:
         center_x = frame.shape[1] // 2
         title_x = center_x - text_width // 2
         title_y = offset_y - 10
+        w = frame.shape[1]
+        columns = 3
+        col_spacing = 230
+        row_spacing = 50
+        box_width = 180
+        box_height = 48
+        panel_width = (columns - 1) * col_spacing + box_width
+        offset_x = (w - panel_width) // 2
 
         cv2.putText(frame, title, (title_x, title_y),
                     font, font_scale, (255, 255, 0), thickness)
@@ -158,30 +165,30 @@ class EyeSpeakInterface:
             return frame
 
         max_rows_per_col = 5
-        columns = 3
+
         total_visible = max_rows_per_col * columns
         col_spacing = 230
         row_spacing = 50
         font_scale = 0.5
-        box_width = 200
-        box_height = 40
+        box_width = 180
+        box_height = 48
 
         start_index = self.phrase_scroll_offset
         end_index = min(start_index + total_visible, len(self.phrases))
         visible_items = self.phrases[start_index:end_index]
 
-        has_next_page = len(self.phrases) > end_index
-        # total_options = len(visible_items) + 2  # includes BACK and NEXT
+        has_prev_page = self.phrase_scroll_offset > 0
+        has_next_page = end_index < len(self.phrases)
 
         highlight_index = self.phrase_index
 
         # BACK button (top left corner)
         back_x = offset_x
-        back_y = offset_y - 50
+        back_y = offset_y - 70
         back_color = (0, 255, 0) if highlight_index == -1 else (255, 255, 255)
         cv2.rectangle(frame, (back_x, back_y), (back_x + box_width, back_y + box_height), back_color, 2)
         cv2.putText(frame, "BACK", (back_x + 10, back_y + 25),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, back_color, 2)
+                    font, 0.6, back_color, 2)
 
         # Phrase buttons
         for i, phrase in enumerate(visible_items):
@@ -190,20 +197,50 @@ class EyeSpeakInterface:
             x = offset_x + col * col_spacing
             y = offset_y + row * row_spacing
             color = (0, 255, 0) if highlight_index == i else (255, 255, 255)
+
             cv2.rectangle(frame, (x, y), (x + box_width, y + box_height), color, 2)
-            cv2.putText(frame, phrase[:30], (x + 5, y + 25),
-                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, 1)
+
+            # Word wrapping inside box
+            words = phrase.split()
+            line1, line2 = "", ""
+            current_line = ""
+
+            for word in words:
+                test_line = current_line + (" " if current_line else "") + word
+                (text_width, _), _ = cv2.getTextSize(test_line, font, font_scale, 1)
+                if text_width < box_width - 10:
+                    current_line = test_line
+                elif not line1:
+                    line1 = current_line
+                    current_line = word
+                else:
+                    line2 = current_line
+                    current_line = word
+                    break  # only show 2 lines max
+
+            if not line1:
+                line1 = current_line
+                line2 = ""
+            elif not line2:
+                line2 = current_line
+            else:
+                line2 = line2[:max(0, len(line2) - 3)] + "..."
+
+            # Draw wrapped text inside the box
+            cv2.putText(frame, line1.strip(), (x + 5, y + 18), font, font_scale, color, 1)
+            if line2.strip():
+                cv2.putText(frame, line2.strip(), (x + 5, y + 35), font, font_scale, color, 1)
 
         # NEXT PAGE button
         if has_next_page:
+            next_index = len(visible_items)
             next_x = offset_x + (columns - 1) * col_spacing
             next_y = offset_y + max_rows_per_col * row_spacing + 10
-            next_color = (0, 255, 0) if highlight_index == len(visible_items) else (255, 255, 255)
+            next_color = (0, 255, 0) if highlight_index == next_index else (255, 255, 255)
             cv2.rectangle(frame, (next_x, next_y), (next_x + 100, next_y + 40), next_color, 2)
             cv2.putText(frame, "NEXT", (next_x + 10, next_y + 28),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, next_color, 2)
-
-
+                        font, 0.8, next_color, 2)  
+            
         return frame
 
     def draw_confirm_ui(self, frame, offset_x, offset_y):
@@ -257,7 +294,7 @@ class EyeSpeakInterface:
                 self.quit_confirm = False
                 self.quit_index = 0
             return None
-        
+
         if self.selection_mode:
             if self.confirm_options[self.confirm_index] == "YES":
                 return self.commit_char()
@@ -270,20 +307,31 @@ class EyeSpeakInterface:
             visible_count = min(self.visible_phrases, len(self.phrases) - self.phrase_scroll_offset)
 
             if self.phrase_index == -1:
-                self.in_phrase_panel = False
-                self.phrase_index = 0
-                self.phrase_scroll_offset = 0
+                if self.phrase_scroll_offset == 0:
+                    # On first page → go back to keyboard
+                    self.in_phrase_panel = False
+                    self.phrase_index = 0
+                    self.phrase_scroll_offset = 0
+                else:
+                    # On later pages → scroll back
+                    self.phrase_scroll_offset -= self.visible_phrases
+                    if self.phrase_scroll_offset < 0:
+                        self.phrase_scroll_offset = 0
+                    self.phrase_index = -1
+
             elif self.phrase_index == visible_count:
                 # NEXT PAGE
                 self.phrase_scroll_offset += self.visible_phrases
                 if self.phrase_scroll_offset >= len(self.phrases):
                     self.phrase_scroll_offset = 0
                 self.phrase_index = -1
+
             else:
                 selected_index = self.phrase_scroll_offset + self.phrase_index
                 if selected_index < len(self.phrases):
                     self.pending_char = self.phrases[selected_index]
                     self.selection_mode = True
+
             return None
 
         # Regular keyboard

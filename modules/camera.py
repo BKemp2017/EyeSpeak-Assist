@@ -25,9 +25,12 @@ class Camera:
 
         if not self.using_picamera2:
             print("[INFO] Initializing OpenCV fallback camera")
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+            for _ in range(5):
+                self.cap.read()
 
     def get_frame(self):
         if self.using_picamera2:
