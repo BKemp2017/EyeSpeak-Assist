@@ -160,21 +160,12 @@ path = r"C:\Users\blake\american-english"  # or /usr/share/dict/american-english
 
 ## 📘 License
 
-Creative Commons Attribution-NonCommercial 4.0 International
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
-This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+This means:
 
-To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/
+- ✅ You can use and modify this project for **personal, academic, or assistive purposes**.
+- ❌ **Commercial use is prohibited** without permission.
 
-You are free to:
-- Share — copy and redistribute the material in any medium or format
-- Adapt — remix, transform, and build upon the material
-
-Under the following terms:
-- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
-- NonCommercial — You may not use the material for commercial purposes.
-
-For commercial inquiries, contact: **blakekemp01@gmail.com**
-
-© 2025 Blake Kemp. All rights reserved.
+For commercial licensing or partnership inquiries, contact: **blakekemp01@gmail.com**
 
