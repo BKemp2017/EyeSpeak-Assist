@@ -14,7 +14,7 @@
 # │  • NonCommercial — You may not use the material for commercial purposes    │
 # │                                                                            │
 # │ License Info: https://creativecommons.org/licenses/by-nc/4.0/              │
-# │ Commercial Use: Contact blake@yourdomain.com                               │
+# │ Commercial Use: Contact blakekemp01@gmail.com                              │
 # └────────────────────────────────────────────────────────────────────────────┘
 
 
