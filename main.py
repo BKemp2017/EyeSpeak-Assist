@@ -82,15 +82,17 @@ def wait_for_camera():
 
         if not camera_ready:
             try:
+                print("[DEBUG] Trying to initialize camera...")
                 camera = Camera()
                 frame = camera.get_frame()
                 if frame is not None:
                     camera_ready = True
                     break
+                else:
+                    print("[DEBUG] Camera.get_frame() returned None.")
             except Exception as e:
+                print(f"[ERROR] Exception while initializing camera: {e}")
                 camera = None
-                # Keep retrying until max time
-                pass
 
     if not camera_ready:
         print("[ERROR] Camera initialization failed.")
