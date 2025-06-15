@@ -1,6 +1,6 @@
 # 🧠 EyeSpeak Assist — Blink-Driven Speech for ALS Users
 
-EyeSpeak Assist is an accessible, Raspberry Pi–ready, blink-based speech interface designed for individuals with ALS and other motor impairments. It uses a webcam to detect blinks and enables the user to select letters and phrases from a custom onscreen keyboard — hands-free, voice-powered communication.
+EyeSpeak Assist is an accessible, Raspberry Pi–ready, blink-based speech interface designed for individuals with ALS and other motor impairments. It uses a webcam or Pi camera to detect blinks and enables the user to select letters and phrases from a custom onscreen keyboard — hands-free, voice-powered communication.
 
 ---
 
@@ -12,8 +12,9 @@ EyeSpeak Assist is an accessible, Raspberry Pi–ready, blink-based speech inter
 - ✅ **YES/NO Confirmation**: Prevents accidental keypresses.
 - ✅ **Custom Phrase Panel**: Easily add/edit phrases via a YAML file (`ui/phrases.yml`).
 - ✅ **Text-to-Speech Output**: Speaks selected phrases using `espeak`.
-- ✅ **Raspberry Pi Compatible**: Optimized for low-resource devices.
-- ✅ **Camera Auto-Detection**: Supports multiple webcam indexes.
+- ✅ **Full-Screen Support**: UI adapts to 1280x800 displays (ideal for touchscreens).
+- ✅ **Raspberry Pi 5 Compatible**: Optimized for low-resource ARM devices.
+- ✅ **Camera Auto-Detection**: Supports both USB and PiCamera2-based modules.
 
 ---
 
@@ -50,8 +51,8 @@ EyeSpeak Assist is an accessible, Raspberry Pi–ready, blink-based speech inter
 ### 1. Clone the Repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/eye_speak_assist.git
-cd eye_speak_assist
+git clone https://github.com/BKemp2017/EyeSpeak-Assist.git
+cd EyeSpeak-Assist
 ```
 
 ### 2. Create a Virtual Environment (optional but recommended)
@@ -67,10 +68,9 @@ source venv/bin/activate  # Linux/macOS
 
 ```bash
 pip install -r requirements.txt
-pip install opencv-python mediapipe numpy pygame pyautogui pyyaml
+pip install opencv-python mediapipe numpy pygame pyautogui pyyaml picamera2
 sudo apt install espeak
 ```
-
 If you don’t have a `requirements.txt`, manually install:
 
 ```bash
@@ -80,6 +80,17 @@ pip install opencv-python mediapipe numpy pyyaml
 > ⚠️ On Windows, also install [`espeak`](http://espeak.sourceforge.net/download.html) and ensure it's added to your PATH.
 
 ---
+
+## 💡 If Using an EDATEC HMI Touchscreen (ED-HMI3010-101CC-0000) Install Raspberry Pi OS 64-bit, then run this command before rebooting:
+
+```bash
+curl -s https://apt.edatec.cn/bsp/ed-install.sh | sudo bash -s "hmi3010_101c"
+```
+## ⚠️ Important: This display has no built-in speaker.
+You will need either:
+A USB speaker, or
+A Bluetooth speaker
+to hear spoken output from espeak.
 
 ## 🧪 Testing Your Camera
 
