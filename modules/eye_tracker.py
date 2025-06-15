@@ -11,8 +11,8 @@ class EyeTracker:
         self.face_mesh = mp.solutions.face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
-            min_detection_confidence=0.6,
-            min_tracking_confidence=0.6
+            min_detection_confidence=0.8,
+            min_tracking_confidence=0.8
         )
 
         self.left_lid_top = 159
