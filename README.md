@@ -158,14 +158,40 @@ path = r"C:\Users\blake\american-english"  # or /usr/share/dict/american-english
 
 ---
 
-## 📘 License
+## 📄 Licensing & Attribution
 
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
+### 🔐 Project License
 
-This means:
+This project, **EyeSpeak Assist**, is licensed under the  
+**[Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/)** license.
 
-- ✅ You can use and modify this project for **personal, academic, or assistive purposes**.
-- ❌ **Commercial use is prohibited** without permission.
+> You are free to:
+> - **Share** — copy and redistribute the material in any medium or format  
+> - **Adapt** — remix, transform, and build upon the material  
+>
+> **Under the following terms:**
+> - **Attribution** — You must give appropriate credit and indicate if changes were made.  
+> - **NonCommercial** — You may not use the material for commercial purposes.
 
-For commercial licensing or partnership inquiries, contact: **blakekemp01@gmail.com**
+**© 2025 Blake Kemp. All rights reserved.**  
+For commercial use or licensing inquiries, please contact: **blakekemp01@gmail.com**
 
+---
+
+### 📦 Third-Party Dependencies
+
+This project uses the following open-source libraries:
+
+| Library        | License        | Purpose                                       |
+|----------------|----------------|-----------------------------------------------|
+| [OpenCV](https://opencv.org/)             | Apache 2.0     | Computer vision (camera & image handling)       |
+| [MediaPipe](https://github.com/google/mediapipe)       | Apache 2.0     | Face/eye/blink tracking                        |
+| [PyAutoGUI](https://pyautogui.readthedocs.io/)         | BSD            | Simulate mouse/keyboard input                  |
+| [Picamera2](https://github.com/raspberrypi/picamera2)  | BSD            | Access Raspberry Pi camera                     |
+| [PyYAML](https://pyyaml.org/)                         | MIT            | Load and parse YAML phrase files               |
+| [NumPy](https://numpy.org/)                           | BSD            | Matrix operations and numeric processing       |
+| [pygame](https://www.pygame.org/news)                 | LGPL-2.1       | Audio playback and UI rendering                |
+| [eSpeak](http://espeak.sourceforge.net/)              | GPL-3.0        | Text-to-speech engine                          |
+
+> 📝 This software uses `eSpeak` via a subprocess call (e.g., `espeak "Hello"`), not as a library import.  
+> This usage **does not make EyeSpeak Assist a derivative work** under GPL, so the **CC BY-NC 4.0 license remains valid**.
