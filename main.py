@@ -158,7 +158,7 @@ def main():
 
     try:
         last_update = time.time()
-        interval = 0.86
+        interval = 1.5
 
         while True:
             frame = camera.get_frame()

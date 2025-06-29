@@ -20,6 +20,7 @@
 import cv2
 import os
 import yaml
+import time
 
 class EyeSpeakInterface:
     def __init__(self):
@@ -50,7 +51,20 @@ class EyeSpeakInterface:
         self.phrases = self.load_phrases()
         self.quit_confirm = False
         self.quit_index = 0
+        self.linger_mode = False
+        self.linger_started_at = 0
+        self.linger_phase = "green"
+        self.last_highlighted_index = None
         self.key_order = self.generate_key_order()
+
+    def get_highlight_color(self, current_index, default_color=(0, 255, 0)):
+        if self.linger_mode and self.last_highlighted_index == current_index:
+            if self.linger_phase == "green":
+                return default_color  # solid green
+            elif self.linger_phase == "flash":
+                flash_cycle = int((time.time() * 6) % 2)
+                return (0, 255, 255) if flash_cycle == 0 else (255, 255, 255)
+        return default_color
 
     def load_phrases(self):
         try:
@@ -125,7 +139,7 @@ class EyeSpeakInterface:
         if self.in_phrase_panel:
             return self.draw_phrase_panel(frame, offset_x, offset_y)
         phrase_button_coords = (offset_x + 4 * self.cell_width, offset_y)
-        phrase_color = (0, 255, 0) if self.is_phrase_selected() else (255, 255, 255)
+        phrase_color = self.get_highlight_color(("SPECIAL", "PHRASES")) if self.is_phrase_selected() else (255, 255, 255)
         cv2.rectangle(frame, phrase_button_coords, 
                       (phrase_button_coords[0] + 2 * self.cell_width, phrase_button_coords[1] + self.cell_height), 
                       phrase_color, 2)
@@ -140,7 +154,12 @@ class EyeSpeakInterface:
                 y2 = y1 + self.cell_height
                 highlighted = self.key_order[self.key_index] == ("KEY", char)
                 enabled = char.upper() in self.valid_keys
-                color = (0, 255, 0) if highlighted and enabled else (100, 100, 100) if not enabled else (255, 255, 255)
+                if highlighted and enabled:
+                    color = self.get_highlight_color(("KEY", char))
+                elif not enabled:
+                    color = (100, 100, 100)
+                else:
+                    color = (255, 255, 255)
                 thickness = 2 if enabled else 1
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3 if highlighted and enabled else thickness)
                 cv2.putText(frame, char, (x1 + 15, y1 + 45), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
@@ -149,7 +168,7 @@ class EyeSpeakInterface:
         x = offset_x + 8 * self.cell_width
         y = offset_y - self.cell_height
         highlighted = self.key_order[self.key_index] == ("SPECIAL", "QUIT")
-        color = (0, 255, 0) if highlighted else (255, 255, 255)
+        color = self.get_highlight_color(("SPECIAL", "QUIT")) if highlighted else (255, 255, 255)
         cv2.rectangle(frame, (x, y), (x + 2 * self.cell_width, y + self.cell_height), color, 2)
         cv2.putText(frame, "QUIT", (x + 5, y + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
@@ -177,20 +196,13 @@ class EyeSpeakInterface:
         cv2.putText(frame, title, (title_x, title_y),
                     font, font_scale, (255, 255, 0), thickness)
 
-
         if not self.phrases:
             cv2.putText(frame, "⚠ No phrases found.", (offset_x, offset_y + 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
             return frame
 
         max_rows_per_col = 5
-
         total_visible = max_rows_per_col * columns
-        col_spacing = 230
-        row_spacing = 50
-        font_scale = 0.5
-        box_width = 180
-        box_height = 48
 
         start_index = self.phrase_scroll_offset
         end_index = min(start_index + total_visible, len(self.phrases))
@@ -201,13 +213,12 @@ class EyeSpeakInterface:
 
         highlight_index = self.phrase_index
 
-        # BACK button (top left corner)
+        # BACK button
         back_x = offset_x
         back_y = offset_y - 70
-        back_color = (0, 255, 0) if highlight_index == -1 else (255, 255, 255)
+        back_color = self.get_highlight_color(("PHRASE", -1)) if highlight_index == -1 else (255, 255, 255)
         cv2.rectangle(frame, (back_x, back_y), (back_x + box_width, back_y + box_height), back_color, 2)
-        cv2.putText(frame, "BACK", (back_x + 10, back_y + 25),
-                    font, 0.6, back_color, 2)
+        cv2.putText(frame, "BACK", (back_x + 10, back_y + 25), font, 0.6, back_color, 2)
 
         # Phrase buttons
         for i, phrase in enumerate(visible_items):
@@ -215,11 +226,10 @@ class EyeSpeakInterface:
             row = i % max_rows_per_col
             x = offset_x + col * col_spacing
             y = offset_y + row * row_spacing
-            color = (0, 255, 0) if highlight_index == i else (255, 255, 255)
-
+            color = self.get_highlight_color(("PHRASE", i)) if highlight_index == i else (255, 255, 255)
             cv2.rectangle(frame, (x, y), (x + box_width, y + box_height), color, 2)
 
-            # Word wrapping inside box
+            # Word wrapping
             words = phrase.split()
             line1, line2 = "", ""
             current_line = ""
@@ -234,8 +244,7 @@ class EyeSpeakInterface:
                     current_line = word
                 else:
                     line2 = current_line
-                    current_line = word
-                    break  # only show 2 lines max
+                    break
 
             if not line1:
                 line1 = current_line
@@ -245,7 +254,6 @@ class EyeSpeakInterface:
             else:
                 line2 = line2[:max(0, len(line2) - 3)] + "..."
 
-            # Draw wrapped text inside the box
             cv2.putText(frame, line1.strip(), (x + 5, y + 18), font, font_scale, color, 1)
             if line2.strip():
                 cv2.putText(frame, line2.strip(), (x + 5, y + 35), font, font_scale, color, 1)
@@ -255,11 +263,10 @@ class EyeSpeakInterface:
             next_index = len(visible_items)
             next_x = offset_x + (columns - 1) * col_spacing
             next_y = offset_y + max_rows_per_col * row_spacing + 10
-            next_color = (0, 255, 0) if highlight_index == next_index else (255, 255, 255)
+            next_color = self.get_highlight_color(("PHRASE", next_index)) if highlight_index == next_index else (255, 255, 255)
             cv2.rectangle(frame, (next_x, next_y), (next_x + 100, next_y + 40), next_color, 2)
-            cv2.putText(frame, "NEXT", (next_x + 10, next_y + 28),
-                        font, 0.8, next_color, 2)  
-            
+            cv2.putText(frame, "NEXT", (next_x + 10, next_y + 28), font, 0.8, next_color, 2)
+
         return frame
 
     def draw_confirm_ui(self, frame, offset_x, offset_y):
@@ -276,26 +283,46 @@ class EyeSpeakInterface:
         return frame
 
     def advance_key(self):
+        now = time.time()
+        if self.linger_mode:
+            # Stay in green phase for 1s before starting to flash
+            if self.linger_phase == "green":
+                if now - self.linger_started_at >= 1.0:
+                    self.linger_phase = "flash"
+                return
+            elif self.linger_phase == "flash":
+                # After 1.5s of flashing, advance
+                if now - self.linger_started_at >= 2.5:
+                    self.linger_mode = False
+                    self.linger_phase = "green"
+                    return
+
         if self.quit_confirm:
             self.quit_index = (self.quit_index + 1) % 2
+            self.last_highlighted_index = ("SPECIAL", "QUIT")
+            self.linger_mode = True  # NEXT frame will flash
+            self.linger_started_at = now
+            self.linger_phase = "green"
             return
-        
+
         if self.selection_mode:
             return
 
         if self.in_phrase_panel:
-            # Total phrases per page (usually 15 if 5x3)
             max_visible = self.visible_phrase_rows * self.visible_phrase_cols
             total_phrases = len(self.phrases)
             start_index = self.phrase_scroll_offset
             visible_count = min(max_visible, total_phrases - start_index)
-
-            # total_options: -1 for BACK, 0..N-1 for visible phrases, N for NEXT
             total_options = visible_count + 2
 
             self.phrase_index += 1
             if self.phrase_index >= total_options:
-                self.phrase_index = -1  # wrap around to BACK
+                self.phrase_index = -1  # wrap to BACK
+
+            self.last_highlighted_index = ("PHRASE", self.phrase_index)
+            self.linger_mode = True  # First frame = solid green
+            self.linger_started_at = now
+            self.linger_phase = "green"
         else:
             tries = 0
             while tries < len(self.key_order):
@@ -305,7 +332,14 @@ class EyeSpeakInterface:
                     break
                 tries += 1
 
+            self.last_highlighted_index = self.key_order[self.key_index]
+            self.linger_mode = True  # First frame = solid green
+            self.linger_started_at = now
+            self.linger_phase = "green"
+
     def blink_triggered(self):
+        self.linger_mode = False
+
         if self.quit_confirm:
             if self.quit_index == 0:
                 exit(0)
@@ -350,7 +384,7 @@ class EyeSpeakInterface:
                 if selected_index < len(self.phrases):
                     self.pending_char = self.phrases[selected_index]
                     self.selection_mode = True
-
+            
             return None
 
         # Regular keyboard
