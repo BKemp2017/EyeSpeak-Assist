@@ -1,5 +1,6 @@
 import "dart:ui" show Size;
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
@@ -48,6 +49,37 @@ class BlinkDetector {
   }
 
   InputImage _toInputImage(CameraImage image, CameraController controller) {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    final inputFormat =
+        InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
+
+    final imageSize = Size(image.width.toDouble(), image.height.toDouble());
+
+    final rotation = InputImageRotationValue.fromRawValue(
+            controller.description.sensorOrientation) ??
+        InputImageRotation.rotation0deg;
+
+    final planeData = image.planes
+        .map((p) => InputImagePlaneMetadata(
+              bytesPerRow: p.bytesPerRow,
+              height: p.height,
+              width: p.width,
+            ))
+        .toList();
+
+    final inputData = InputImageData(
+      size: imageSize,
+      imageRotation: rotation,
+      inputImageFormat: inputFormat,
+      planeData: planeData,
+    );
+
+    return InputImage.fromBytes(bytes: bytes, inputImageData: inputData);
     final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
     return InputImage.fromBytes(
       bytes: image.planes[0].bytes,

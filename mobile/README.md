@@ -13,6 +13,17 @@ The project depends on Google's ML Kit for blink detection and the platform text
 
 A release build can be generated with `flutter build apk` or `flutter build ios`.
 
+## Using a Samsung S25 Ultra for Testing
+
+1. Enable developer options on the phone:
+   - Open **Settings** → **About phone** → **Software information**.
+   - Tap **Build number** seven times to unlock developer options.
+2. Return to **Settings** → **Developer options** and enable **USB debugging**.
+3. Install the Samsung USB drivers on your computer (or Android File Transfer on macOS).
+4. Connect the phone to your computer with a USB cable and confirm the debugging prompt on the device.
+5. Run `flutter devices` to verify that the S25 Ultra appears in the device list.
+6. Execute `flutter run` from this directory to build and launch the app on the phone.
+
 ## Compliance Notes
 
 - The camera feed is processed only for real‑time blink detection and is not stored.
