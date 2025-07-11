@@ -80,6 +80,18 @@ class BlinkDetector {
     );
 
     return InputImage.fromBytes(bytes: bytes, inputImageData: inputData);
+    final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
+    return InputImage.fromBytes(
+      bytes: image.planes[0].bytes,
+      inputImageData: InputImageData(
+        size: Size(controller.value.previewSize!.height, controller.value.previewSize!.width),
+        imageRotation: InputImageRotationValue.fromRawValue(controller.description.sensorOrientation) ?? InputImageRotation.rotation0deg,
+        inputImageFormat: format,
+        planeData: image.planes.map(
+          (p) => InputImagePlaneMetadata(bytesPerRow: p.bytesPerRow, height: p.height, width: p.width),
+        ).toList(),
+      ),
+    );
   }
 
   void dispose() {
