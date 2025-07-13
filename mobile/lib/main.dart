@@ -44,11 +44,14 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
   late Timer _timer;
   late FlutterTts _tts;
   BlinkDetector? _detector;
+  bool _cooldown = false;
 
   @override
   void initState() {
     super.initState();
     _tts = FlutterTts();
+    _tts.setLanguage("en-US");
+    _tts.setSpeechRate(0.5);
     _detector = BlinkDetector(onBlink: _onBlink);
     _timer = Timer.periodic(const Duration(milliseconds: 1500), (timer) {
       setState(() {
@@ -59,13 +62,19 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
         }
       });
     });
-    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
-  void _onBlink() {
+  void _onBlink() async {
+    if (_cooldown) return;
+    _cooldown = true;
     final ch = _layout[_row][_col];
     setState(() {
       if (ch == '-') {
+        _tts.stop();
         _tts.speak(_text);
         _text = '';
       } else if (ch == '.') {
@@ -78,6 +87,8 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
         _text += ch;
       }
     });
+    await Future.delayed(const Duration(milliseconds: 800));
+    _cooldown = false;
   }
 
   @override
