@@ -1,9 +1,0 @@
-# Flutter build outputs
-build/
-.dart_tool/
-.packages
-.flutter-plugins
-.flutter-plugins-dependencies
-.melos_tool
-.idea/
-.DS_Store
